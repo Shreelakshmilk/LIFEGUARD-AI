@@ -25,7 +25,8 @@ class HeartInput(BaseModel):
 
 @router.post("/predict/heart")
 def predict(data: HeartInput):
-    prediction = heart_model.predict([[
+
+    features = [[
         data.age,
         data.sex,
         data.cp,
@@ -39,8 +40,26 @@ def predict(data: HeartInput):
         data.slope,
         data.ca,
         data.thal
-    ]])
+    ]]
+
+    # Prediction
+    prediction = heart_model.predict(features)[0]
+
+    # Probability of class 1
+    probabilities = heart_model.predict_proba(features)[0]
+    risk_probability = float(probabilities[1])
+
+    # Risk category
+    if risk_probability >= 0.70:
+        risk_level = "High"
+    elif risk_probability >= 0.40:
+        risk_level = "Moderate"
+    else:
+        risk_level = "Low"
 
     return {
-        "prediction": int(prediction[0])
+        "prediction": int(prediction),
+        "probability": round(risk_probability, 4),
+        "risk_percentage": round(risk_probability * 100, 2),
+        "risk_level": risk_level
     }
